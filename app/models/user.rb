@@ -1,11 +1,11 @@
 class User < ActiveRecord::Base
-  
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
     devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
          :omniauthable
-         
+
   TEMP_EMAIL_PREFIX = 'jongwon@me'
   TEMP_EMAIL_REGEX = /\Achange@me/
 
@@ -29,12 +29,15 @@ class User < ActiveRecord::Base
       email_is_verified = auth.info.email || (auth.info.verified || auth.info.verified_email)
       email = auth.info.email if email_is_verified
       user = User.where(:email => email).first if email
-
+      #프로필 사진 추가부분
+      proimg = auth.info.image
+      proimg ? proimg.sub!("https","http") : nil
       # Create the user if it's a new registration
       if user.nil?
         user = User.new(
           name: auth.info.name || auth.extra.nickname ||  auth.uid,
           email: email ? email : "#{TEMP_EMAIL_PREFIX}-#{auth.uid}-#{auth.provider}.com",
+          proimg: proimg ? proimg : "null",
           password: Devise.friendly_token[0,20]
         )
         user.save!
